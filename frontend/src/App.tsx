@@ -7,6 +7,7 @@ import NewTicketPage from './pages/NewTicketPage'
 import CategoriesPage from './pages/CategoriesPage'
 import TicketDetailPage from './pages/TicketDetailPage'
 import RegisterPage from './pages/RegisterPage'
+import ReportsPage from './pages/ReportsPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/tickets/new" element={<NewTicketPage />} />
             <Route path="/tickets/:id" element={<TicketDetailPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

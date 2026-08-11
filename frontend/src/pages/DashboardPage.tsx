@@ -85,9 +85,14 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {currentUser?.role === 'ADMIN' && (
-            <Link to="/categories">
-              <button>Categorias</button>
-            </Link>
+            <>
+              <Link to="/categories">
+                <button>Categorias</button>
+              </Link>
+              <Link to="/reports">
+                <button>Relatórios</button>
+              </Link>
+            </>
           )}
           <NotificationBell />
           <button onClick={logout}>Sair</button>
