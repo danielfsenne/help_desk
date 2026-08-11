@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage'
 import NewTicketPage from './pages/NewTicketPage'
 import CategoriesPage from './pages/CategoriesPage'
 import TicketDetailPage from './pages/TicketDetailPage'
+import RegisterPage from './pages/RegisterPage'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/tickets/new" element={<NewTicketPage />} />
