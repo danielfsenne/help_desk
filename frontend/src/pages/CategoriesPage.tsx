@@ -70,26 +70,28 @@ export default function CategoriesPage() {
         <PageHeader title="Categorias" subtitle="Organize os assuntos dos chamados" />
 
         <Card className="p-4 mb-6">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} required className="flex-1" />
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
+            <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} required className="sm:flex-1" />
             <Input
               placeholder="Descrição (opcional)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="flex-[2]"
+              className="sm:flex-[2]"
             />
-            <Button type="submit">
-              {editingId ? 'Salvar' : (
-                <>
-                  <Plus size={16} /> Adicionar
-                </>
-              )}
-            </Button>
-            {editingId && (
-              <Button type="button" variant="ghost" onClick={resetForm}>
-                <X size={16} />
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1 sm:flex-initial">
+                {editingId ? 'Salvar' : (
+                  <>
+                    <Plus size={16} /> Adicionar
+                  </>
+                )}
               </Button>
-            )}
+              {editingId && (
+                <Button type="button" variant="ghost" onClick={resetForm}>
+                  <X size={16} />
+                </Button>
+              )}
+            </div>
           </form>
         </Card>
 
@@ -101,6 +103,7 @@ export default function CategoriesPage() {
           ) : categories.length === 0 ? (
             <EmptyState icon={Folders} message="Nenhuma categoria cadastrada." />
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-ink-muted border-b border-hairline">
@@ -112,7 +115,7 @@ export default function CategoriesPage() {
               <tbody>
                 {categories.map((category) => (
                   <tr key={category.id} className="border-b border-hairline last:border-0">
-                    <td className="px-4 py-3 font-medium text-ink">{category.name}</td>
+                    <td className="px-4 py-3 font-medium text-ink whitespace-nowrap">{category.name}</td>
                     <td className="px-4 py-3 text-ink-secondary">{category.description}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -136,6 +139,7 @@ export default function CategoriesPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>

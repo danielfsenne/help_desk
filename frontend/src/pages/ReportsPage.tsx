@@ -64,7 +64,7 @@ export default function ReportsPage() {
     <AppShell>
       <PageHeader title="Relatórios" subtitle="Métricas gerais do atendimento" />
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <StatCard
           label="Tempo médio de resolução"
           value={summary.avgResolutionMinutes != null ? formatMinutes(summary.avgResolutionMinutes) : '—'}

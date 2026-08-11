@@ -85,7 +85,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-ink">Olá, {currentUser?.name.split(' ')[0]}</h1>
           <p className="text-ink-muted text-sm">
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 basis-full sm:basis-auto min-w-[200px]">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
           <Input
             placeholder="Buscar por título..."
