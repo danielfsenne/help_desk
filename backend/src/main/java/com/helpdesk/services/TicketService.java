@@ -1,5 +1,6 @@
 package com.helpdesk.services;
 
+import com.helpdesk.dto.TicketFilter;
 import com.helpdesk.dto.TicketRequestDTO;
 import com.helpdesk.dto.TicketResponseDTO;
 import com.helpdesk.dto.TicketStatusUpdateDTO;
@@ -44,18 +45,12 @@ public class TicketService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<TicketResponseDTO> findAll(User principal, Long requesterId, Long attendantId) {
-        List<Ticket> tickets;
+    public List<TicketResponseDTO> findAll(User principal, TicketFilter filter) {
+        Long requesterId = principal.getRole() == Role.CLIENT ? principal.getId() : filter.requesterId();
+        String search = (filter.search() == null || filter.search().isBlank()) ? null : filter.search().trim();
 
-        if (principal.getRole() == Role.CLIENT) {
-            tickets = ticketRepository.findByRequesterId(principal.getId());
-        } else if (requesterId != null) {
-            tickets = ticketRepository.findByRequesterId(requesterId);
-        } else if (attendantId != null) {
-            tickets = ticketRepository.findByAttendantId(attendantId);
-        } else {
-            tickets = ticketRepository.findAll();
-        }
+        List<Ticket> tickets = ticketRepository.search(
+                requesterId, filter.attendantId(), filter.status(), filter.priority(), filter.categoryId(), search);
 
         return tickets.stream().map(TicketResponseDTO::from).toList();
     }

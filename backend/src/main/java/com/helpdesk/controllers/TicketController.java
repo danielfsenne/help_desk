@@ -2,9 +2,12 @@ package com.helpdesk.controllers;
 
 import com.helpdesk.dto.CommentRequestDTO;
 import com.helpdesk.dto.CommentResponseDTO;
+import com.helpdesk.dto.TicketFilter;
 import com.helpdesk.dto.TicketRequestDTO;
 import com.helpdesk.dto.TicketResponseDTO;
 import com.helpdesk.dto.TicketStatusUpdateDTO;
+import com.helpdesk.enums.TicketPriority;
+import com.helpdesk.enums.TicketStatus;
 import com.helpdesk.security.UserPrincipal;
 import com.helpdesk.services.CommentService;
 import com.helpdesk.services.TicketService;
@@ -28,8 +31,13 @@ public class TicketController {
     public List<TicketResponseDTO> findAll(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(required = false) Long requesterId,
-            @RequestParam(required = false) Long attendantId) {
-        return ticketService.findAll(principal.getUser(), requesterId, attendantId);
+            @RequestParam(required = false) Long attendantId,
+            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false) TicketPriority priority,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String search) {
+        TicketFilter filter = new TicketFilter(requesterId, attendantId, status, priority, categoryId, search);
+        return ticketService.findAll(principal.getUser(), filter);
     }
 
     @GetMapping("/{id}")
