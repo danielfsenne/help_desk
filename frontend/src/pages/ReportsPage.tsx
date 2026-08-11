@@ -1,7 +1,12 @@
+import { CheckCircle2, Timer, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { getReportSummary, type ReportSummary } from '../api/reports'
+import AppShell from '../components/AppShell'
 import HorizontalBarList from '../components/HorizontalBarList'
+import Card from '../components/ui/Card'
+import EmptyState from '../components/ui/EmptyState'
+import PageHeader from '../components/ui/PageHeader'
+import StatCard from '../components/ui/StatCard'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
 
 function formatMinutes(minutes: number): string {
@@ -21,8 +26,21 @@ export default function ReportsPage() {
       .catch(() => setError('Não foi possível carregar os relatórios.'))
   }, [])
 
-  if (error) return <p style={{ padding: 24, color: 'crimson' }}>{error}</p>
-  if (!summary) return <p style={{ padding: 24 }}>Carregando...</p>
+  if (error) {
+    return (
+      <AppShell>
+        <p className="text-priority-critical text-sm">{error}</p>
+      </AppShell>
+    )
+  }
+
+  if (!summary) {
+    return (
+      <AppShell>
+        <div className="py-20 text-center text-ink-muted text-sm">Carregando...</div>
+      </AppShell>
+    )
+  }
 
   const statusItems = (Object.keys(STATUS_LABELS) as (keyof typeof STATUS_LABELS)[]).map((status) => ({
     label: STATUS_LABELS[status],
@@ -39,47 +57,48 @@ export default function ReportsPage() {
   const attendantItems = summary.byAttendant.map((a) => ({
     label: a.attendantName,
     value: a.ticketCount,
-    color: '#2563eb',
+    color: '#2a78d6',
   }))
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: 24, maxWidth: 720, margin: '0 auto' }}>
-      <Link to="/dashboard">&larr; Voltar</Link>
-      <h1>Relatórios</h1>
+    <AppShell>
+      <PageHeader title="Relatórios" subtitle="Métricas gerais do atendimento" />
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-        <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
-          <div style={{ fontSize: 24, fontWeight: 700 }}>
-            {summary.avgResolutionMinutes != null ? formatMinutes(summary.avgResolutionMinutes) : '—'}
-          </div>
-          <div style={{ color: '#666', fontSize: 13 }}>Tempo médio de resolução</div>
-        </div>
-        <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
-          <div style={{ fontSize: 24, fontWeight: 700 }}>
-            {summary.slaComplianceRate != null ? `${summary.slaComplianceRate.toFixed(0)}%` : '—'}
-          </div>
-          <div style={{ color: '#666', fontSize: 13 }}>Chamados resolvidos dentro do SLA</div>
-        </div>
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <StatCard
+          label="Tempo médio de resolução"
+          value={summary.avgResolutionMinutes != null ? formatMinutes(summary.avgResolutionMinutes) : '—'}
+          color="#2a78d6"
+          icon={Timer}
+        />
+        <StatCard
+          label="Resolvidos dentro do SLA"
+          value={summary.slaComplianceRate != null ? `${summary.slaComplianceRate.toFixed(0)}%` : '—'}
+          color="#1baf7a"
+          icon={CheckCircle2}
+        />
       </div>
 
-      <section style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16 }}>Chamados por status</h2>
-        <HorizontalBarList items={statusItems} />
-      </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-5">
+          <h2 className="text-sm font-semibold text-ink-secondary mb-4">Chamados por status</h2>
+          <HorizontalBarList items={statusItems} />
+        </Card>
 
-      <section style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16 }}>Chamados por prioridade</h2>
-        <HorizontalBarList items={priorityItems} />
-      </section>
+        <Card className="p-5">
+          <h2 className="text-sm font-semibold text-ink-secondary mb-4">Chamados por prioridade</h2>
+          <HorizontalBarList items={priorityItems} />
+        </Card>
 
-      <section style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16 }}>Carga por atendente</h2>
-        {attendantItems.length === 0 ? (
-          <p style={{ color: '#666' }}>Nenhum chamado atribuído ainda.</p>
-        ) : (
-          <HorizontalBarList items={attendantItems} />
-        )}
-      </section>
-    </div>
+        <Card className="p-5 md:col-span-2">
+          <h2 className="text-sm font-semibold text-ink-secondary mb-4">Carga por atendente</h2>
+          {attendantItems.length === 0 ? (
+            <EmptyState icon={Users} message="Nenhum chamado atribuído ainda." />
+          ) : (
+            <HorizontalBarList items={attendantItems} />
+          )}
+        </Card>
+      </div>
+    </AppShell>
   )
 }

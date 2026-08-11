@@ -8,25 +8,21 @@ export default function HorizontalBarList({ items }: { items: BarItem[] }) {
   const max = Math.max(1, ...items.map((i) => i.value))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="flex flex-col gap-3">
       {items.map((item) => (
-        <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 130, fontSize: 13, color: '#444', flexShrink: 0 }}>{item.label}</div>
-          <div style={{ flex: 1, background: '#f3f4f6', borderRadius: 6, height: 14, position: 'relative' }}>
+        <div key={item.label} className="flex items-center gap-3 group">
+          <div className="w-32 text-sm text-ink-secondary shrink-0 truncate">{item.label}</div>
+          <div className="flex-1 h-2 rounded-full bg-page overflow-hidden">
             <div
+              className="h-full rounded-full transition-all duration-300"
               style={{
                 width: `${(item.value / max) * 100}%`,
-                background: item.color,
-                height: '100%',
-                borderRadius: 6,
-                minWidth: item.value > 0 ? 6 : 0,
-                transition: 'width 0.3s ease',
+                backgroundColor: item.color,
+                minWidth: item.value > 0 ? 4 : 0,
               }}
             />
           </div>
-          <div style={{ width: 28, textAlign: 'right', fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
-            {item.value}
-          </div>
+          <div className="w-7 text-right text-sm font-semibold text-ink tabular-nums shrink-0">{item.value}</div>
         </div>
       ))}
     </div>
