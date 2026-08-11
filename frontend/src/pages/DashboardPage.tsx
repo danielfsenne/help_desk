@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { listCategories } from '../api/categories'
 import { listTickets } from '../api/tickets'
 import Badge from '../components/Badge'
+import NotificationBell from '../components/NotificationBell'
 import SlaBadge from '../components/SlaBadge'
 import { useAuth } from '../context/AuthContext'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
@@ -88,6 +89,7 @@ export default function DashboardPage() {
               <button>Categorias</button>
             </Link>
           )}
+          <NotificationBell />
           <button onClick={logout}>Sair</button>
         </div>
       </header>
