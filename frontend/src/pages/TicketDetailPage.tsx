@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { type Attachment, downloadAttachment, listAttachments, uploadAttachment } from '../api/attachments'
 import { addComment, listComments } from '../api/comments'
 import { assignTicket, getTicket, updateTicketStatus } from '../api/tickets'
 import Badge from '../components/Badge'
@@ -7,13 +8,21 @@ import { useAuth } from '../context/AuthContext'
 import type { Comment, Ticket } from '../types'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
 
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export default function TicketDetailPage() {
   const { id } = useParams()
   const ticketId = Number(id)
   const { currentUser } = useAuth()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -21,10 +30,11 @@ export default function TicketDetailPage() {
   const [working, setWorking] = useState(false)
 
   function reload() {
-    Promise.all([getTicket(ticketId), listComments(ticketId)])
-      .then(([t, c]) => {
+    Promise.all([getTicket(ticketId), listComments(ticketId), listAttachments(ticketId)])
+      .then(([t, c, a]) => {
         setTicket(t)
         setComments(c)
+        setAttachments(a)
       })
       .catch(() => setError('Não foi possível carregar o chamado.'))
       .finally(() => setLoading(false))
@@ -91,6 +101,31 @@ export default function TicketDetailPage() {
     }
   }
 
+  async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setWorking(true)
+    setActionError(null)
+    try {
+      await uploadAttachment(ticketId, file)
+      reload()
+    } catch {
+      setActionError('Não foi possível enviar o anexo.')
+    } finally {
+      setWorking(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleDownload(attachment: Attachment) {
+    try {
+      await downloadAttachment(attachment)
+    } catch {
+      setActionError('Não foi possível baixar o anexo.')
+    }
+  }
+
   if (loading) return <p style={{ padding: 24 }}>Carregando...</p>
   if (error || !ticket) return <p style={{ padding: 24, color: 'crimson' }}>{error ?? 'Chamado não encontrado.'}</p>
 
@@ -141,6 +176,37 @@ export default function TicketDetailPage() {
           )}
         </div>
         {actionError && <p style={{ color: 'crimson' }}>{actionError}</p>}
+      </div>
+
+      <h2 style={{ fontSize: 16 }}>Anexos</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+        {attachments.length === 0 && <p style={{ color: '#666' }}>Nenhum anexo.</p>}
+        {attachments.map((attachment) => (
+          <div
+            key={attachment.id}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              border: '1px solid #f0f0f0',
+              borderRadius: 8,
+              padding: '8px 12px',
+            }}
+          >
+            <span>
+              📎 {attachment.fileName}{' '}
+              <span style={{ color: '#666', fontSize: 12 }}>
+                ({formatSize(attachment.size)} · enviado por {attachment.uploadedBy.name})
+              </span>
+            </span>
+            <button onClick={() => handleDownload(attachment)}>Baixar</button>
+          </div>
+        ))}
+        {canComment && (
+          <div>
+            <input ref={fileInputRef} type="file" onChange={handleUpload} disabled={working} />
+          </div>
+        )}
       </div>
 
       <h2 style={{ fontSize: 16 }}>Conversa</h2>
