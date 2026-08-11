@@ -3,15 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
-
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-}
+import Avatar from './ui/Avatar'
 
 function NavLink({ to, children }: { to: string; children: ReactNode }) {
   const location = useLocation()
@@ -56,9 +48,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <NotificationBell />
 
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-brand-500 text-white text-xs font-semibold flex items-center justify-center">
-                {initials(currentUser.name)}
-              </div>
+              <Avatar name={currentUser.name} size={32} />
               <div className="hidden sm:block leading-tight">
                 <div className="text-sm font-medium text-ink">{currentUser.name}</div>
                 <div className="text-xs text-ink-muted">{currentUser.role}</div>
