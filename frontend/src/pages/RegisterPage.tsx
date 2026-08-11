@@ -1,6 +1,11 @@
+import { LifeBuoy } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login as loginRequest, register } from '../api/auth'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Field from '../components/ui/Field'
+import Input from '../components/ui/Input'
 import { useAuth } from '../context/AuthContext'
 
 export default function RegisterPage() {
@@ -29,46 +34,52 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ maxWidth: 360, margin: '80px auto', fontFamily: 'sans-serif' }}>
-      <h1>Criar conta</h1>
-      <p style={{ color: '#666', fontSize: 14 }}>Cadastro disponível para clientes.</p>
+    <div className="min-h-screen flex items-center justify-center bg-page px-4">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center gap-2 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-brand-500 text-white flex items-center justify-center">
+            <LifeBuoy size={24} strokeWidth={2.25} />
+          </div>
+          <h1 className="text-xl font-semibold text-ink">Criar conta</h1>
+          <p className="text-sm text-ink-muted">Cadastro disponível para clientes</p>
+        </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <input
-          placeholder="Nome"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ padding: 8 }}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: 8 }}
-        />
-        <input
-          type="password"
-          placeholder="Senha (mínimo 6 caracteres)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          style={{ padding: 8 }}
-        />
+        <Card className="p-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <Field label="Nome">
+              <Input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+            </Field>
 
-        {error && <p style={{ color: 'crimson' }}>{error}</p>}
+            <Field label="Email">
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </Field>
 
-        <button type="submit" disabled={submitting} style={{ padding: 8 }}>
-          {submitting ? 'Criando...' : 'Criar conta'}
-        </button>
-      </form>
+            <Field label="Senha">
+              <Input
+                type="password"
+                placeholder="mínimo 6 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </Field>
 
-      <p style={{ fontSize: 14, marginTop: 16 }}>
-        Já tem conta? <Link to="/">Entrar</Link>
-      </p>
+            {error && <p className="text-sm text-priority-critical">{error}</p>}
+
+            <Button type="submit" disabled={submitting} className="w-full mt-1">
+              {submitting ? 'Criando...' : 'Criar conta'}
+            </Button>
+          </form>
+        </Card>
+
+        <p className="text-center text-sm text-ink-secondary mt-4">
+          Já tem conta?{' '}
+          <Link to="/" className="text-brand-600 font-medium hover:underline">
+            Entrar
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
