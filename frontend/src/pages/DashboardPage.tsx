@@ -1,41 +1,78 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { listCategories } from '../api/categories'
 import { listTickets } from '../api/tickets'
 import Badge from '../components/Badge'
 import { useAuth } from '../context/AuthContext'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
-import type { Ticket } from '../types'
+import type { Category, Ticket, TicketPriority, TicketStatus } from '../types'
 
 export default function DashboardPage() {
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
+
+  const [allTickets, setAllTickets] = useState<Ticket[]>([])
   const [tickets, setTickets] = useState<Ticket[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [status, setStatus] = useState<TicketStatus | ''>('')
+  const [priority, setPriority] = useState<TicketPriority | ''>('')
+  const [categoryId, setCategoryId] = useState('')
+  const [search, setSearch] = useState('')
+
+  const baseFilters = useMemo(
+    () => (currentUser?.role === 'CLIENT' ? { requesterId: currentUser.id } : {}),
+    [currentUser],
+  )
+
+  useEffect(() => {
+    if (!currentUser) return
+    listTickets(baseFilters).then(setAllTickets).catch(() => {})
+    listCategories().then(setCategories).catch(() => {})
+  }, [currentUser, baseFilters])
 
   useEffect(() => {
     if (!currentUser) return
 
-    const filters = currentUser.role === 'CLIENT' ? { requesterId: currentUser.id } : {}
+    const timeout = setTimeout(() => {
+      setLoading(true)
+      listTickets({
+        ...baseFilters,
+        status: status || undefined,
+        priority: priority || undefined,
+        categoryId: categoryId ? Number(categoryId) : undefined,
+        search: search || undefined,
+      })
+        .then(setTickets)
+        .catch(() => setError('Não foi possível carregar os chamados.'))
+        .finally(() => setLoading(false))
+    }, 300)
 
-    listTickets(filters)
-      .then(setTickets)
-      .catch(() => setError('Não foi possível carregar os chamados.'))
-      .finally(() => setLoading(false))
-  }, [currentUser])
+    return () => clearTimeout(timeout)
+  }, [currentUser, baseFilters, status, priority, categoryId, search])
 
   const counts = useMemo(
     () => ({
-      NEW: tickets.filter((t) => t.status === 'NEW').length,
-      IN_PROGRESS: tickets.filter((t) => t.status === 'IN_PROGRESS').length,
-      RESOLVED: tickets.filter((t) => t.status === 'RESOLVED').length,
-      CLOSED: tickets.filter((t) => t.status === 'CLOSED').length,
+      NEW: allTickets.filter((t) => t.status === 'NEW').length,
+      IN_PROGRESS: allTickets.filter((t) => t.status === 'IN_PROGRESS').length,
+      RESOLVED: allTickets.filter((t) => t.status === 'RESOLVED').length,
+      CLOSED: allTickets.filter((t) => t.status === 'CLOSED').length,
     }),
-    [tickets],
+    [allTickets],
   )
 
   const canOpenTicket = currentUser?.role === 'CLIENT'
   const showRequester = currentUser?.role !== 'CLIENT'
+  const hasActiveFilters = status || priority || categoryId || search
+
+  function clearFilters() {
+    setStatus('')
+    setPriority('')
+    setCategoryId('')
+    setSearch('')
+  }
 
   return (
     <div style={{ fontFamily: 'sans-serif', padding: 24, maxWidth: 960, margin: '0 auto' }}>
@@ -68,6 +105,44 @@ export default function DashboardPage() {
             <button>+ Novo chamado</button>
           </Link>
         )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <input
+          placeholder="Buscar por título..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: 8, flex: 1, minWidth: 180 }}
+        />
+        <select value={status} onChange={(e) => setStatus(e.target.value as TicketStatus | '')} style={{ padding: 8 }}>
+          <option value="">Todos os status</option>
+          {Object.entries(STATUS_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as TicketPriority | '')}
+          style={{ padding: 8 }}
+        >
+          <option value="">Todas as prioridades</option>
+          {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} style={{ padding: 8 }}>
+          <option value="">Todas as categorias</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        {hasActiveFilters && <button onClick={clearFilters}>Limpar filtros</button>}
       </div>
 
       {loading && <p>Carregando...</p>}

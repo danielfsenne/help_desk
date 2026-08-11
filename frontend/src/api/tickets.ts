@@ -11,6 +11,10 @@ export interface TicketRequest {
 export interface TicketFilters {
   requesterId?: number
   attendantId?: number
+  status?: TicketStatus
+  priority?: TicketPriority
+  categoryId?: number
+  search?: string
 }
 
 export async function listTickets(filters: TicketFilters = {}): Promise<Ticket[]> {
