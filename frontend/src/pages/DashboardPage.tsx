@@ -1,16 +1,23 @@
+import { CheckCircle2, Clock, FolderOpen, Inbox, Plus, Search, TicketX, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { listCategories } from '../api/categories'
 import { listTickets } from '../api/tickets'
+import AppShell from '../components/AppShell'
 import Badge from '../components/Badge'
-import NotificationBell from '../components/NotificationBell'
 import SlaBadge from '../components/SlaBadge'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import EmptyState from '../components/ui/EmptyState'
+import Input from '../components/ui/Input'
+import Select from '../components/ui/Select'
+import StatCard from '../components/ui/StatCard'
 import { useAuth } from '../context/AuthContext'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
 import type { Category, Ticket, TicketPriority, TicketStatus } from '../types'
 
 export default function DashboardPage() {
-  const { currentUser, logout } = useAuth()
+  const { currentUser } = useAuth()
   const navigate = useNavigate()
 
   const [allTickets, setAllTickets] = useState<Ticket[]>([])
@@ -77,132 +84,117 @@ export default function DashboardPage() {
   }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: 24, maxWidth: 960, margin: '0 auto' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <AppShell>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 style={{ margin: 0 }}>Olá, {currentUser?.name}</h1>
-          <span style={{ color: '#666', fontSize: 13 }}>{currentUser?.role}</span>
+          <h1 className="text-2xl font-semibold text-ink">Olá, {currentUser?.name.split(' ')[0]}</h1>
+          <p className="text-ink-muted text-sm">
+            {canOpenTicket ? 'Acompanhe seus chamados abertos' : 'Visão geral dos chamados'}
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {currentUser?.role === 'ADMIN' && (
-            <>
-              <Link to="/categories">
-                <button>Categorias</button>
-              </Link>
-              <Link to="/reports">
-                <button>Relatórios</button>
-              </Link>
-            </>
-          )}
-          <NotificationBell />
-          <button onClick={logout}>Sair</button>
-        </div>
-      </header>
-
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-        <StatCard label="Novos" value={counts.NEW} color={STATUS_COLORS.NEW} />
-        <StatCard label="Em atendimento" value={counts.IN_PROGRESS} color={STATUS_COLORS.IN_PROGRESS} />
-        <StatCard label="Resolvidos" value={counts.RESOLVED} color={STATUS_COLORS.RESOLVED} />
-        <StatCard label="Fechados" value={counts.CLOSED} color={STATUS_COLORS.CLOSED} />
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 18 }}>{canOpenTicket ? 'Meus chamados' : 'Chamados'}</h2>
         {canOpenTicket && (
           <Link to="/tickets/new">
-            <button>+ Novo chamado</button>
+            <Button>
+              <Plus size={16} /> Novo chamado
+            </Button>
           </Link>
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        <input
-          placeholder="Buscar por título..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: 8, flex: 1, minWidth: 180 }}
-        />
-        <select value={status} onChange={(e) => setStatus(e.target.value as TicketStatus | '')} style={{ padding: 8 }}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <StatCard label="Novos" value={counts.NEW} color={STATUS_COLORS.NEW} icon={Inbox} />
+        <StatCard label="Em atendimento" value={counts.IN_PROGRESS} color={STATUS_COLORS.IN_PROGRESS} icon={Clock} />
+        <StatCard label="Resolvidos" value={counts.RESOLVED} color={STATUS_COLORS.RESOLVED} icon={CheckCircle2} />
+        <StatCard label="Fechados" value={counts.CLOSED} color={STATUS_COLORS.CLOSED} icon={FolderOpen} />
+      </div>
+
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <Input
+            placeholder="Buscar por título..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 w-full"
+          />
+        </div>
+        <Select value={status} onChange={(e) => setStatus(e.target.value as TicketStatus | '')}>
           <option value="">Todos os status</option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>
           ))}
-        </select>
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as TicketPriority | '')}
-          style={{ padding: 8 }}
-        >
+        </Select>
+        <Select value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority | '')}>
           <option value="">Todas as prioridades</option>
           {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>
           ))}
-        </select>
-        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} style={{ padding: 8 }}>
+        </Select>
+        <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
           <option value="">Todas as categorias</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
             </option>
           ))}
-        </select>
-        {hasActiveFilters && <button onClick={clearFilters}>Limpar filtros</button>}
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X size={14} /> Limpar
+          </Button>
+        )}
       </div>
 
-      {loading && <p>Carregando...</p>}
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
+      {error && <p className="text-priority-critical text-sm mb-4">{error}</p>}
 
-      {!loading && !error && tickets.length === 0 && <p style={{ color: '#666' }}>Nenhum chamado encontrado.</p>}
-
-      {!loading && tickets.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
-              <th style={{ padding: 8 }}>#</th>
-              <th style={{ padding: 8 }}>Título</th>
-              {showRequester && <th style={{ padding: 8 }}>Solicitante</th>}
-              <th style={{ padding: 8 }}>Prioridade</th>
-              <th style={{ padding: 8 }}>Status</th>
-              <th style={{ padding: 8 }}>SLA</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tickets.map((ticket) => (
-              <tr
-                key={ticket.id}
-                onClick={() => navigate(`/tickets/${ticket.id}`)}
-                style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
-              >
-                <td style={{ padding: 8 }}>{ticket.id}</td>
-                <td style={{ padding: 8 }}>{ticket.title}</td>
-                {showRequester && <td style={{ padding: 8 }}>{ticket.requester.name}</td>}
-                <td style={{ padding: 8 }}>
-                  <Badge label={PRIORITY_LABELS[ticket.priority]} color={PRIORITY_COLORS[ticket.priority]} />
-                </td>
-                <td style={{ padding: 8 }}>
-                  <Badge label={STATUS_LABELS[ticket.status]} color={STATUS_COLORS[ticket.status]} />
-                </td>
-                <td style={{ padding: 8 }}>
-                  <SlaBadge ticket={ticket} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  )
-}
-
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div style={{ flex: 1, border: '1px solid #eee', borderRadius: 8, padding: 16, borderTop: `3px solid ${color}` }}>
-      <div style={{ fontSize: 28, fontWeight: 700 }}>{value}</div>
-      <div style={{ color: '#666', fontSize: 13 }}>{label}</div>
-    </div>
+      <Card className="overflow-hidden">
+        {loading ? (
+          <div className="py-16 text-center text-ink-muted text-sm">Carregando...</div>
+        ) : tickets.length === 0 ? (
+          <EmptyState icon={TicketX} message="Nenhum chamado encontrado." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-ink-muted border-b border-hairline">
+                  <th className="px-4 py-3 font-medium">#</th>
+                  <th className="px-4 py-3 font-medium">Título</th>
+                  {showRequester && <th className="px-4 py-3 font-medium">Solicitante</th>}
+                  <th className="px-4 py-3 font-medium">Prioridade</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">SLA</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map((ticket) => (
+                  <tr
+                    key={ticket.id}
+                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                    className="border-b border-hairline last:border-0 cursor-pointer hover:bg-page transition-colors"
+                  >
+                    <td className="px-4 py-3 text-ink-muted">#{ticket.id}</td>
+                    <td className="px-4 py-3 text-ink font-medium">{ticket.title}</td>
+                    {showRequester && <td className="px-4 py-3 text-ink-secondary">{ticket.requester.name}</td>}
+                    <td className="px-4 py-3">
+                      <Badge label={PRIORITY_LABELS[ticket.priority]} color={PRIORITY_COLORS[ticket.priority]} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge label={STATUS_LABELS[ticket.status]} color={STATUS_COLORS[ticket.status]} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <SlaBadge ticket={ticket} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </AppShell>
   )
 }
