@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { listCategories } from '../api/categories'
 import { listTickets } from '../api/tickets'
 import Badge from '../components/Badge'
+import SlaBadge from '../components/SlaBadge'
 import { useAuth } from '../context/AuthContext'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
 import type { Category, Ticket, TicketPriority, TicketStatus } from '../types'
@@ -159,6 +160,7 @@ export default function DashboardPage() {
               {showRequester && <th style={{ padding: 8 }}>Solicitante</th>}
               <th style={{ padding: 8 }}>Prioridade</th>
               <th style={{ padding: 8 }}>Status</th>
+              <th style={{ padding: 8 }}>SLA</th>
             </tr>
           </thead>
           <tbody>
@@ -176,6 +178,9 @@ export default function DashboardPage() {
                 </td>
                 <td style={{ padding: 8 }}>
                   <Badge label={STATUS_LABELS[ticket.status]} color={STATUS_COLORS[ticket.status]} />
+                </td>
+                <td style={{ padding: 8 }}>
+                  <SlaBadge ticket={ticket} />
                 </td>
               </tr>
             ))}

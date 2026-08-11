@@ -26,6 +26,9 @@ export interface Ticket {
   priority: TicketPriority
   createdAt: string
   updatedAt: string
+  slaDeadline: string
+  resolvedAt: string | null
+  slaBreached: boolean
   requester: User
   attendant: User | null
   category: Category

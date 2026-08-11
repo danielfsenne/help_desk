@@ -4,6 +4,7 @@ import { type Attachment, downloadAttachment, listAttachments, uploadAttachment 
 import { addComment, listComments } from '../api/comments'
 import { assignTicket, getTicket, updateTicketStatus } from '../api/tickets'
 import Badge from '../components/Badge'
+import SlaBadge from '../components/SlaBadge'
 import { useAuth } from '../context/AuthContext'
 import type { Comment, Ticket } from '../types'
 import { PRIORITY_COLORS, PRIORITY_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types/labels'
@@ -148,6 +149,7 @@ export default function TicketDetailPage() {
           <div style={{ display: 'flex', gap: 8 }}>
             <Badge label={PRIORITY_LABELS[ticket.priority]} color={PRIORITY_COLORS[ticket.priority]} />
             <Badge label={STATUS_LABELS[ticket.status]} color={STATUS_COLORS[ticket.status]} />
+            <SlaBadge ticket={ticket} />
           </div>
         </div>
 
