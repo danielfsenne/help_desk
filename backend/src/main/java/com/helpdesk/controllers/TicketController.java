@@ -6,12 +6,14 @@ import com.helpdesk.dto.CommentResponseDTO;
 import com.helpdesk.dto.TicketFilter;
 import com.helpdesk.dto.TicketRequestDTO;
 import com.helpdesk.dto.TicketResponseDTO;
+import com.helpdesk.dto.TicketHistoryResponseDTO;
 import com.helpdesk.dto.TicketStatusUpdateDTO;
 import com.helpdesk.enums.TicketPriority;
 import com.helpdesk.enums.TicketStatus;
 import com.helpdesk.security.UserPrincipal;
 import com.helpdesk.services.AttachmentService;
 import com.helpdesk.services.CommentService;
+import com.helpdesk.services.TicketHistoryService;
 import com.helpdesk.services.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class TicketController {
     private final TicketService ticketService;
     private final CommentService commentService;
     private final AttachmentService attachmentService;
+    private final TicketHistoryService ticketHistoryService;
 
     @GetMapping
     public List<TicketResponseDTO> findAll(
@@ -94,5 +97,11 @@ public class TicketController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
         return attachmentService.upload(id, file, principal.getUser());
+    }
+
+    @GetMapping("/{id}/history")
+    public List<TicketHistoryResponseDTO> findHistory(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long id) {
+        ticketService.findById(id, principal.getUser());
+        return ticketHistoryService.findByTicket(id);
     }
 }

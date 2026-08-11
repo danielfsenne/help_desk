@@ -22,6 +22,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final TicketService ticketService;
+    private final TicketHistoryService ticketHistoryService;
 
     @Transactional(readOnly = true)
     public List<CommentResponseDTO> findByTicket(Long ticketId, User principal) {
@@ -49,6 +50,7 @@ public class CommentService {
 
         if (ticket.getStatus() == TicketStatus.RESOLVED && author.getRole() == Role.CLIENT) {
             ticketService.changeStatus(ticket, TicketStatus.IN_PROGRESS);
+            ticketHistoryService.record(ticket, author, "Reaberto automaticamente após resposta de " + author.getName());
         }
 
         return CommentResponseDTO.from(saved);

@@ -44,6 +44,7 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final TicketHistoryService ticketHistoryService;
 
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> findAll(User principal, TicketFilter filter) {
@@ -82,7 +83,15 @@ public class TicketService {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
         });
 
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+
+        ticketHistoryService.record(saved, requester, "Chamado aberto por " + requester.getName());
+        if (saved.getAttendant() != null) {
+            ticketHistoryService.record(saved, requester,
+                    "Atribuído automaticamente a " + saved.getAttendant().getName());
+        }
+
+        return TicketResponseDTO.from(saved);
     }
 
     private Optional<User> findLeastBusyAttendant() {
@@ -101,6 +110,8 @@ public class TicketService {
 
         ticket.setAttendant(attendant);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
+
+        ticketHistoryService.record(ticket, attendant, attendant.getName() + " assumiu o chamado");
 
         return TicketResponseDTO.from(ticket);
     }
@@ -124,7 +135,11 @@ public class TicketService {
             }
         }
 
+        TicketStatus previous = ticket.getStatus();
         changeStatus(ticket, target);
+        ticketHistoryService.record(ticket, principal,
+                "Status alterado de " + previous + " para " + target + " por " + principal.getName());
+
         return TicketResponseDTO.from(ticket);
     }
 
