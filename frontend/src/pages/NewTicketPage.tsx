@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { listCategories } from '../api/categories'
 import { createTicket } from '../api/tickets'
-import { useAuth } from '../context/AuthContext'
 import type { Category, TicketPriority } from '../types'
 import { PRIORITY_LABELS } from '../types/labels'
 
 export default function NewTicketPage() {
-  const { currentUser } = useAuth()
   const navigate = useNavigate()
 
   const [categories, setCategories] = useState<Category[]>([])
@@ -26,7 +24,6 @@ export default function NewTicketPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (!currentUser) return
 
     if (!categoryId) {
       setError('Selecione uma categoria')
@@ -42,7 +39,6 @@ export default function NewTicketPage() {
         description,
         priority,
         categoryId: Number(categoryId),
-        requesterId: currentUser.id,
       })
       navigate(`/tickets/${ticket.id}`)
     } catch {

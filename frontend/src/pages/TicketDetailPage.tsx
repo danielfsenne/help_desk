@@ -36,11 +36,10 @@ export default function TicketDetailPage() {
   }, [ticketId])
 
   async function handleAssign() {
-    if (!currentUser) return
     setWorking(true)
     setActionError(null)
     try {
-      await assignTicket(ticketId, currentUser.id)
+      await assignTicket(ticketId)
       reload()
     } catch {
       setActionError('Não foi possível assumir o chamado.')
@@ -77,12 +76,12 @@ export default function TicketDetailPage() {
 
   async function handleSendComment(event: React.FormEvent) {
     event.preventDefault()
-    if (!currentUser || !message.trim()) return
+    if (!message.trim()) return
 
     setWorking(true)
     setActionError(null)
     try {
-      await addComment(ticketId, message.trim(), currentUser.id)
+      await addComment(ticketId, message.trim())
       setMessage('')
       reload()
     } catch {

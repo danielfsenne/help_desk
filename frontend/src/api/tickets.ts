@@ -5,7 +5,6 @@ export interface TicketRequest {
   title: string
   description: string
   priority: TicketPriority
-  requesterId: number
   categoryId: number
 }
 
@@ -29,8 +28,8 @@ export async function createTicket(payload: TicketRequest): Promise<Ticket> {
   return data
 }
 
-export async function assignTicket(id: number, attendantId: number): Promise<Ticket> {
-  const { data } = await http.patch<Ticket>(`/tickets/${id}/assign`, { attendantId })
+export async function assignTicket(id: number): Promise<Ticket> {
+  const { data } = await http.patch<Ticket>(`/tickets/${id}/assign`, {})
   return data
 }
 

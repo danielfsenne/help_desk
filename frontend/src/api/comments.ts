@@ -6,7 +6,7 @@ export async function listComments(ticketId: number): Promise<Comment[]> {
   return data
 }
 
-export async function addComment(ticketId: number, message: string, authorId: number): Promise<Comment> {
-  const { data } = await http.post<Comment>(`/tickets/${ticketId}/comments`, { message, authorId })
+export async function addComment(ticketId: number, message: string): Promise<Comment> {
+  const { data } = await http.post<Comment>(`/tickets/${ticketId}/comments`, { message })
   return data
 }
