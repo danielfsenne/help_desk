@@ -1,5 +1,5 @@
+import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import Badge from './Badge'
 import type { Ticket } from '../types'
 
 function formatRemaining(ms: number): string {
@@ -24,17 +24,29 @@ export default function SlaBadge({ ticket }: { ticket: SlaTicket }) {
 
   if (isFinal) {
     return ticket.slaBreached ? (
-      <Badge label="SLA violado" color="#dc2626" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-priority-critical/10 text-priority-critical">
+        <AlertTriangle size={12} /> SLA violado
+      </span>
     ) : (
-      <Badge label="Dentro do SLA" color="#16a34a" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-priority-low/10 text-priority-low">
+        <CheckCircle2 size={12} /> Dentro do SLA
+      </span>
     )
   }
 
   const remainingMs = new Date(ticket.slaDeadline).getTime() - Date.now()
 
   if (remainingMs <= 0) {
-    return <Badge label="⚠ SLA violado" color="#dc2626" />
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-priority-critical/10 text-priority-critical">
+        <AlertTriangle size={12} /> SLA violado
+      </span>
+    )
   }
 
-  return <Badge label={`⏱ ${formatRemaining(remainingMs)} restantes`} color="#d97706" />
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-priority-medium/10 text-[#a06600]">
+      <Clock size={12} /> {formatRemaining(remainingMs)} restantes
+    </span>
+  )
 }

@@ -1,3 +1,4 @@
+import { Bell, Inbox } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { type AppNotification, listNotifications, markAsRead, unreadCount } from '../api/notifications'
@@ -45,63 +46,48 @@ export default function NotificationBell() {
   }
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      <button onClick={toggleOpen} style={{ position: 'relative' }}>
-        🔔
+    <div ref={containerRef} className="relative">
+      <button
+        onClick={toggleOpen}
+        title="Notificações"
+        className="relative w-9 h-9 flex items-center justify-center rounded-lg text-ink-secondary hover:bg-page hover:text-ink transition-colors"
+      >
+        <Bell size={18} />
         {count > 0 && (
-          <span
-            style={{
-              position: 'absolute',
-              top: -6,
-              right: -6,
-              background: '#dc2626',
-              color: '#fff',
-              borderRadius: '50%',
-              fontSize: 11,
-              padding: '1px 5px',
-              fontWeight: 700,
-            }}
-          >
-            {count}
+          <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-priority-critical text-white text-[10px] font-bold flex items-center justify-center leading-none">
+            {count > 9 ? '9+' : count}
           </span>
         )}
       </button>
 
       {open && (
-        <div
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: '110%',
-            width: 320,
-            maxHeight: 360,
-            overflowY: 'auto',
-            background: '#fff',
-            border: '1px solid #ddd',
-            borderRadius: 8,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            zIndex: 10,
-          }}
-        >
-          {notifications.length === 0 && <p style={{ padding: 12, color: '#666' }}>Nenhuma notificação.</p>}
-          {notifications.map((notification) => (
-            <div
-              key={notification.id}
-              onClick={() => handleClick(notification)}
-              style={{
-                padding: 12,
-                borderBottom: '1px solid #f0f0f0',
-                cursor: 'pointer',
-                background: notification.read ? '#fff' : '#eff6ff',
-                fontSize: 13,
-              }}
-            >
-              <div>{notification.message}</div>
-              <div style={{ color: '#999', fontSize: 11, marginTop: 4 }}>
-                {new Date(notification.createdAt).toLocaleString('pt-BR')}
-              </div>
+        <div className="absolute right-0 top-[110%] w-80 max-h-96 overflow-y-auto bg-white border border-hairline rounded-xl shadow-popover z-10">
+          {notifications.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-10 text-ink-muted">
+              <Inbox size={28} strokeWidth={1.5} />
+              <p className="text-sm">Nenhuma notificação.</p>
             </div>
-          ))}
+          ) : (
+            notifications.map((notification) => (
+              <button
+                key={notification.id}
+                onClick={() => handleClick(notification)}
+                className={`w-full text-left px-4 py-3 border-b border-hairline last:border-0 text-sm transition-colors hover:bg-page ${
+                  notification.read ? 'bg-white' : 'bg-brand-50/60'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {!notification.read && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />}
+                  <div className={notification.read ? 'pl-3.5' : ''}>
+                    <div className="text-ink">{notification.message}</div>
+                    <div className="text-ink-muted text-xs mt-1">
+                      {new Date(notification.createdAt).toLocaleString('pt-BR')}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>

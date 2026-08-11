@@ -14,16 +14,20 @@ export const PRIORITY_LABELS: Record<TicketPriority, string> = {
   CRITICAL: 'Crítica',
 }
 
+// Priority maps onto the fixed good/warning/serious/critical status palette —
+// it is a real severity scale, unlike ticket status below.
 export const PRIORITY_COLORS: Record<TicketPriority, string> = {
-  LOW: '#6b7280',
-  MEDIUM: '#2563eb',
-  HIGH: '#d97706',
-  CRITICAL: '#dc2626',
+  LOW: '#0ca30c',
+  MEDIUM: '#fab219',
+  HIGH: '#ec835a',
+  CRITICAL: '#d03b3b',
 }
 
+// Ticket status is a workflow stage, not a severity — uses categorical hues
+// deliberately distinct from the priority palette above.
 export const STATUS_COLORS: Record<TicketStatus, string> = {
-  NEW: '#2563eb',
-  IN_PROGRESS: '#d97706',
-  RESOLVED: '#16a34a',
-  CLOSED: '#6b7280',
+  NEW: '#2a78d6',
+  IN_PROGRESS: '#eb6834',
+  RESOLVED: '#1baf7a',
+  CLOSED: '#898781',
 }
