@@ -1,5 +1,6 @@
 package com.helpdesk.controllers;
 
+import com.helpdesk.dto.AttachmentResponseDTO;
 import com.helpdesk.dto.CommentRequestDTO;
 import com.helpdesk.dto.CommentResponseDTO;
 import com.helpdesk.dto.TicketFilter;
@@ -9,6 +10,7 @@ import com.helpdesk.dto.TicketStatusUpdateDTO;
 import com.helpdesk.enums.TicketPriority;
 import com.helpdesk.enums.TicketStatus;
 import com.helpdesk.security.UserPrincipal;
+import com.helpdesk.services.AttachmentService;
 import com.helpdesk.services.CommentService;
 import com.helpdesk.services.TicketService;
 import jakarta.validation.Valid;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,6 +29,7 @@ public class TicketController {
 
     private final TicketService ticketService;
     private final CommentService commentService;
+    private final AttachmentService attachmentService;
 
     @GetMapping
     public List<TicketResponseDTO> findAll(
@@ -76,5 +80,19 @@ public class TicketController {
             @PathVariable Long id,
             @Valid @RequestBody CommentRequestDTO dto) {
         return commentService.create(id, dto, principal.getUser());
+    }
+
+    @GetMapping("/{id}/attachments")
+    public List<AttachmentResponseDTO> findAttachments(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long id) {
+        return attachmentService.findByTicket(id, principal.getUser());
+    }
+
+    @PostMapping("/{id}/attachments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AttachmentResponseDTO uploadAttachment(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        return attachmentService.upload(id, file, principal.getUser());
     }
 }
