@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { type Attachment, downloadAttachment, listAttachments, uploadAttachment } from '../api/attachments'
 import { addComment, listComments } from '../api/comments'
+import { type TicketHistoryEntry, listHistory } from '../api/history'
 import { assignTicket, getTicket, updateTicketStatus } from '../api/tickets'
 import Badge from '../components/Badge'
 import SlaBadge from '../components/SlaBadge'
@@ -24,6 +25,7 @@ export default function TicketDetailPage() {
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [history, setHistory] = useState<TicketHistoryEntry[]>([])
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -31,11 +33,12 @@ export default function TicketDetailPage() {
   const [working, setWorking] = useState(false)
 
   function reload() {
-    Promise.all([getTicket(ticketId), listComments(ticketId), listAttachments(ticketId)])
-      .then(([t, c, a]) => {
+    Promise.all([getTicket(ticketId), listComments(ticketId), listAttachments(ticketId), listHistory(ticketId)])
+      .then(([t, c, a, h]) => {
         setTicket(t)
         setComments(c)
         setAttachments(a)
+        setHistory(h)
       })
       .catch(() => setError('Não foi possível carregar o chamado.'))
       .finally(() => setLoading(false))
@@ -238,6 +241,18 @@ export default function TicketDetailPage() {
       ) : (
         <p style={{ color: '#666' }}>Este chamado está fechado e não recebe mais comentários.</p>
       )}
+
+      <details style={{ marginTop: 24 }}>
+        <summary style={{ cursor: 'pointer', fontSize: 16, fontWeight: 600 }}>Histórico</summary>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+          {history.length === 0 && <p style={{ color: '#666' }}>Sem eventos registrados.</p>}
+          {history.map((entry) => (
+            <div key={entry.id} style={{ fontSize: 13, color: '#444', borderLeft: '2px solid #eee', paddingLeft: 10 }}>
+              <span style={{ color: '#999' }}>{new Date(entry.createdAt).toLocaleString('pt-BR')}</span> — {entry.description}
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   )
 }
