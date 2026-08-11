@@ -23,6 +23,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TicketService ticketService;
     private final TicketHistoryService ticketHistoryService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<CommentResponseDTO> findByTicket(Long ticketId, User principal) {
@@ -51,6 +52,14 @@ public class CommentService {
         if (ticket.getStatus() == TicketStatus.RESOLVED && author.getRole() == Role.CLIENT) {
             ticketService.changeStatus(ticket, TicketStatus.IN_PROGRESS);
             ticketHistoryService.record(ticket, author, "Reaberto automaticamente após resposta de " + author.getName());
+        }
+
+        if (author.getRole() == Role.CLIENT) {
+            notificationService.notify(ticket.getAttendant(), author, ticket,
+                    "Novo comentário do cliente no chamado #" + ticket.getId());
+        } else {
+            notificationService.notify(ticket.getRequester(), author, ticket,
+                    "Nova resposta no chamado #" + ticket.getId());
         }
 
         return CommentResponseDTO.from(saved);

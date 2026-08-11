@@ -45,6 +45,7 @@ public class TicketService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final TicketHistoryService ticketHistoryService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> findAll(User principal, TicketFilter filter) {
@@ -89,6 +90,8 @@ public class TicketService {
         if (saved.getAttendant() != null) {
             ticketHistoryService.record(saved, requester,
                     "Atribuído automaticamente a " + saved.getAttendant().getName());
+            notificationService.notify(saved.getAttendant(), requester, saved,
+                    "Você foi atribuído ao chamado #" + saved.getId() + ": " + saved.getTitle());
         }
 
         return TicketResponseDTO.from(saved);
@@ -139,6 +142,11 @@ public class TicketService {
         changeStatus(ticket, target);
         ticketHistoryService.record(ticket, principal,
                 "Status alterado de " + previous + " para " + target + " por " + principal.getName());
+
+        if (target == TicketStatus.RESOLVED) {
+            notificationService.notify(ticket.getRequester(), principal, ticket,
+                    "Seu chamado #" + ticket.getId() + " foi resolvido");
+        }
 
         return TicketResponseDTO.from(ticket);
     }
