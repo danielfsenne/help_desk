@@ -12,15 +12,18 @@ import com.helpdesk.exceptions.BusinessException;
 import com.helpdesk.exceptions.ResourceNotFoundException;
 import com.helpdesk.repositories.CategoryRepository;
 import com.helpdesk.repositories.TicketRepository;
+import com.helpdesk.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -38,6 +41,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> findAll(User principal, Long requesterId, Long attendantId) {
@@ -77,7 +81,18 @@ public class TicketService {
                 .category(category)
                 .build();
 
+        findLeastBusyAttendant().ifPresent(attendant -> {
+            ticket.setAttendant(attendant);
+            ticket.setStatus(TicketStatus.IN_PROGRESS);
+        });
+
         return TicketResponseDTO.from(ticketRepository.save(ticket));
+    }
+
+    private Optional<User> findLeastBusyAttendant() {
+        return userRepository.findByRole(Role.ATTENDANT).stream()
+                .min(Comparator.comparingLong(
+                        attendant -> ticketRepository.countByAttendantIdAndStatus(attendant.getId(), TicketStatus.IN_PROGRESS)));
     }
 
     @Transactional

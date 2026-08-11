@@ -16,7 +16,11 @@ import java.util.Map;
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper;
+
+    public RestAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
