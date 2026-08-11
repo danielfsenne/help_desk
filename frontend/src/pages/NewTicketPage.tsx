@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { listCategories } from '../api/categories'
 import { createTicket } from '../api/tickets'
+import AppShell from '../components/AppShell'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Field from '../components/ui/Field'
+import Input from '../components/ui/Input'
+import PageHeader from '../components/ui/PageHeader'
+import Select from '../components/ui/Select'
+import Textarea from '../components/ui/Textarea'
 import type { Category, TicketPriority } from '../types'
 import { PRIORITY_LABELS } from '../types/labels'
 
@@ -49,70 +57,56 @@ export default function NewTicketPage() {
   }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: 24, maxWidth: 560, margin: '0 auto' }}>
-      <Link to="/dashboard">&larr; Voltar</Link>
-      <h1>Novo chamado</h1>
+    <AppShell>
+      <div className="max-w-xl mx-auto">
+        <PageHeader title="Novo chamado" subtitle="Descreva o problema para que um atendente possa ajudar" />
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <label>
-          Título
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            style={{ width: '100%', padding: 8 }}
-          />
-        </label>
+        <Card className="p-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <Field label="Título">
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus />
+            </Field>
 
-        <label>
-          Descrição
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            rows={5}
-            style={{ width: '100%', padding: 8 }}
-          />
-        </label>
+            <Field label="Descrição">
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows={5}
+              />
+            </Field>
 
-        <label>
-          Categoria
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            required
-            style={{ width: '100%', padding: 8 }}
-          >
-            <option value="">Selecione</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Categoria">
+                <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+                  <option value="">Selecione</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
 
-        <label>
-          Prioridade
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TicketPriority)}
-            style={{ width: '100%', padding: 8 }}
-          >
-            {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+              <Field label="Prioridade">
+                <Select value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority)}>
+                  {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
 
-        {error && <p style={{ color: 'crimson' }}>{error}</p>}
+            {error && <p className="text-sm text-priority-critical">{error}</p>}
 
-        <button type="submit" disabled={submitting} style={{ padding: 8 }}>
-          {submitting ? 'Enviando...' : 'Abrir chamado'}
-        </button>
-      </form>
-    </div>
+            <Button type="submit" disabled={submitting} className="self-end">
+              {submitting ? 'Enviando...' : 'Abrir chamado'}
+            </Button>
+          </form>
+        </Card>
+      </div>
+    </AppShell>
   )
 }

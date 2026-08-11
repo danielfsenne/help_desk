@@ -1,6 +1,12 @@
+import { Folders, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { createCategory, deleteCategory, listCategories, updateCategory } from '../api/categories'
+import AppShell from '../components/AppShell'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import EmptyState from '../components/ui/EmptyState'
+import Input from '../components/ui/Input'
+import PageHeader from '../components/ui/PageHeader'
 import type { Category } from '../types'
 
 export default function CategoriesPage() {
@@ -59,58 +65,80 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: 24, maxWidth: 640, margin: '0 auto' }}>
-      <Link to="/dashboard">&larr; Voltar</Link>
-      <h1>Categorias</h1>
+    <AppShell>
+      <div className="max-w-2xl mx-auto">
+        <PageHeader title="Categorias" subtitle="Organize os assuntos dos chamados" />
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <input
-          placeholder="Nome"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ padding: 8, flex: 1 }}
-        />
-        <input
-          placeholder="Descrição (opcional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          style={{ padding: 8, flex: 2 }}
-        />
-        <button type="submit">{editingId ? 'Salvar' : 'Adicionar'}</button>
-        {editingId && (
-          <button type="button" onClick={resetForm}>
-            Cancelar
-          </button>
-        )}
-      </form>
+        <Card className="p-4 mb-6">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} required className="flex-1" />
+            <Input
+              placeholder="Descrição (opcional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="flex-[2]"
+            />
+            <Button type="submit">
+              {editingId ? 'Salvar' : (
+                <>
+                  <Plus size={16} /> Adicionar
+                </>
+              )}
+            </Button>
+            {editingId && (
+              <Button type="button" variant="ghost" onClick={resetForm}>
+                <X size={16} />
+              </Button>
+            )}
+          </form>
+        </Card>
 
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
-      {loading && <p>Carregando...</p>}
+        {error && <p className="text-sm text-priority-critical mb-4">{error}</p>}
 
-      {!loading && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
-              <th style={{ padding: 8 }}>Nome</th>
-              <th style={{ padding: 8 }}>Descrição</th>
-              <th style={{ padding: 8 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((category) => (
-              <tr key={category.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                <td style={{ padding: 8 }}>{category.name}</td>
-                <td style={{ padding: 8 }}>{category.description}</td>
-                <td style={{ padding: 8, display: 'flex', gap: 8 }}>
-                  <button onClick={() => startEdit(category)}>Editar</button>
-                  <button onClick={() => handleDelete(category.id)}>Excluir</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+        <Card className="overflow-hidden">
+          {loading ? (
+            <div className="py-16 text-center text-ink-muted text-sm">Carregando...</div>
+          ) : categories.length === 0 ? (
+            <EmptyState icon={Folders} message="Nenhuma categoria cadastrada." />
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-ink-muted border-b border-hairline">
+                  <th className="px-4 py-3 font-medium">Nome</th>
+                  <th className="px-4 py-3 font-medium">Descrição</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category) => (
+                  <tr key={category.id} className="border-b border-hairline last:border-0">
+                    <td className="px-4 py-3 font-medium text-ink">{category.name}</td>
+                    <td className="px-4 py-3 text-ink-secondary">{category.description}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => startEdit(category)}
+                          title="Editar"
+                          className="w-8 h-8 flex items-center justify-center rounded-md text-ink-secondary hover:bg-page hover:text-ink transition-colors"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(category.id)}
+                          title="Excluir"
+                          className="w-8 h-8 flex items-center justify-center rounded-md text-ink-secondary hover:bg-priority-critical/10 hover:text-priority-critical transition-colors"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Card>
+      </div>
+    </AppShell>
   )
 }
