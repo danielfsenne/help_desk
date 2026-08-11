@@ -13,10 +13,10 @@ backend/target/
 frontend/node_modules/
 frontend/dist/
 frontend/build/
-frontend/.env
+frontend/.env.local
 
-# Env
-.env
+# Env (local overrides only; frontend/.env holds committed defaults)
+.env.local
 *.log
 
 # OS
