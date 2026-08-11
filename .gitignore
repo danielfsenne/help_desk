@@ -8,6 +8,7 @@ backend/target/
 .idea/
 *.iml
 .vscode/
+.claude/
 
 # Frontend (Node)
 frontend/node_modules/
