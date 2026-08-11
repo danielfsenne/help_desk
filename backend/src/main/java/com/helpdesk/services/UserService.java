@@ -1,8 +1,10 @@
 package com.helpdesk.services;
 
+import com.helpdesk.dto.RegisterRequestDTO;
 import com.helpdesk.dto.UserRequestDTO;
 import com.helpdesk.dto.UserResponseDTO;
 import com.helpdesk.entities.User;
+import com.helpdesk.enums.Role;
 import com.helpdesk.exceptions.BusinessException;
 import com.helpdesk.exceptions.ResourceNotFoundException;
 import com.helpdesk.repositories.UserRepository;
@@ -43,6 +45,22 @@ public class UserService {
                 .email(dto.email())
                 .password(passwordEncoder.encode(dto.password()))
                 .role(dto.role())
+                .build();
+
+        return UserResponseDTO.from(userRepository.save(user));
+    }
+
+    @Transactional
+    public UserResponseDTO register(RegisterRequestDTO dto) {
+        if (userRepository.existsByEmail(dto.email())) {
+            throw new BusinessException("Já existe um usuário com esse email");
+        }
+
+        User user = User.builder()
+                .name(dto.name())
+                .email(dto.email())
+                .password(passwordEncoder.encode(dto.password()))
+                .role(Role.CLIENT)
                 .build();
 
         return UserResponseDTO.from(userRepository.save(user));

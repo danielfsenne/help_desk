@@ -15,9 +15,6 @@ public record TicketRequestDTO(
         @NotNull(message = "prioridade é obrigatória")
         TicketPriority priority,
 
-        @NotNull(message = "solicitante é obrigatório")
-        Long requesterId,
-
         @NotNull(message = "categoria é obrigatória")
         Long categoryId
 ) {

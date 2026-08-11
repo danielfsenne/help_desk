@@ -1,9 +1,12 @@
 package com.helpdesk.config;
 
 import com.helpdesk.security.JwtAuthenticationFilter;
+import com.helpdesk.security.RestAccessDeniedHandler;
+import com.helpdesk.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,6 +25,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAccessDeniedHandler restAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -29,7 +34,19 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/tickets").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/assign").hasAnyRole("ATTENDANT", "ADMIN")
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

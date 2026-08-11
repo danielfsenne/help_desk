@@ -8,10 +8,9 @@ import com.helpdesk.entities.User;
 import com.helpdesk.enums.Role;
 import com.helpdesk.enums.TicketStatus;
 import com.helpdesk.exceptions.BusinessException;
-import com.helpdesk.exceptions.ResourceNotFoundException;
 import com.helpdesk.repositories.CommentRepository;
-import com.helpdesk.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,25 +21,23 @@ import java.util.List;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
     private final TicketService ticketService;
 
     @Transactional(readOnly = true)
-    public List<CommentResponseDTO> findByTicket(Long ticketId) {
+    public List<CommentResponseDTO> findByTicket(Long ticketId, User principal) {
         Ticket ticket = ticketService.findEntityById(ticketId);
+        ticketService.checkCanView(ticket, principal);
         return ticket.getComments().stream().map(CommentResponseDTO::from).toList();
     }
 
     @Transactional
-    public CommentResponseDTO create(Long ticketId, CommentRequestDTO dto) {
+    public CommentResponseDTO create(Long ticketId, CommentRequestDTO dto, User author) {
         Ticket ticket = ticketService.findEntityById(ticketId);
+        ticketService.checkCanView(ticket, author);
 
         if (ticket.getStatus() == TicketStatus.CLOSED) {
             throw new BusinessException("Chamados fechados não podem receber comentários");
         }
-
-        User author = userRepository.findById(dto.authorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + dto.authorId()));
 
         Comment comment = Comment.builder()
                 .message(dto.message())

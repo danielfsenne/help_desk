@@ -1,6 +1,5 @@
 package com.helpdesk.services;
 
-import com.helpdesk.dto.TicketAssignDTO;
 import com.helpdesk.dto.TicketRequestDTO;
 import com.helpdesk.dto.TicketResponseDTO;
 import com.helpdesk.dto.TicketStatusUpdateDTO;
@@ -13,8 +12,8 @@ import com.helpdesk.exceptions.BusinessException;
 import com.helpdesk.exceptions.ResourceNotFoundException;
 import com.helpdesk.repositories.CategoryRepository;
 import com.helpdesk.repositories.TicketRepository;
-import com.helpdesk.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,32 +37,34 @@ public class TicketService {
     }
 
     private final TicketRepository ticketRepository;
-    private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public List<TicketResponseDTO> findAll(Long requesterId, Long attendantId) {
+    public List<TicketResponseDTO> findAll(User principal, Long requesterId, Long attendantId) {
         List<Ticket> tickets;
-        if (requesterId != null) {
+
+        if (principal.getRole() == Role.CLIENT) {
+            tickets = ticketRepository.findByRequesterId(principal.getId());
+        } else if (requesterId != null) {
             tickets = ticketRepository.findByRequesterId(requesterId);
         } else if (attendantId != null) {
             tickets = ticketRepository.findByAttendantId(attendantId);
         } else {
             tickets = ticketRepository.findAll();
         }
+
         return tickets.stream().map(TicketResponseDTO::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public TicketResponseDTO findById(Long id) {
-        return TicketResponseDTO.from(findEntityById(id));
+    public TicketResponseDTO findById(Long id, User principal) {
+        Ticket ticket = findEntityById(id);
+        checkCanView(ticket, principal);
+        return TicketResponseDTO.from(ticket);
     }
 
     @Transactional
-    public TicketResponseDTO create(TicketRequestDTO dto) {
-        User requester = userRepository.findById(dto.requesterId())
-                .orElseThrow(() -> new ResourceNotFoundException("Solicitante não encontrado: " + dto.requesterId()));
-
+    public TicketResponseDTO create(TicketRequestDTO dto, User requester) {
         Category category = categoryRepository.findById(dto.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + dto.categoryId()));
 
@@ -80,15 +81,8 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponseDTO assign(Long id, TicketAssignDTO dto) {
+    public TicketResponseDTO assign(Long id, User attendant) {
         Ticket ticket = findEntityById(id);
-
-        User attendant = userRepository.findById(dto.attendantId())
-                .orElseThrow(() -> new ResourceNotFoundException("Atendente não encontrado: " + dto.attendantId()));
-
-        if (attendant.getRole() != Role.ATTENDANT && attendant.getRole() != Role.ADMIN) {
-            throw new BusinessException("Somente atendentes ou administradores podem assumir um chamado");
-        }
 
         if (ticket.getStatus() != TicketStatus.NEW) {
             throw new BusinessException("Somente chamados novos podem ser assumidos");
@@ -101,9 +95,25 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponseDTO updateStatus(Long id, TicketStatusUpdateDTO dto) {
+    public TicketResponseDTO updateStatus(Long id, TicketStatusUpdateDTO dto, User principal) {
         Ticket ticket = findEntityById(id);
-        changeStatus(ticket, dto.status());
+        TicketStatus target = dto.status();
+
+        boolean isAdmin = principal.getRole() == Role.ADMIN;
+        boolean isAssignedAttendant = ticket.getAttendant() != null && ticket.getAttendant().getId().equals(principal.getId());
+        boolean isRequester = ticket.getRequester().getId().equals(principal.getId());
+
+        if (target == TicketStatus.RESOLVED || target == TicketStatus.IN_PROGRESS) {
+            if (!isAdmin && !isAssignedAttendant) {
+                throw new AccessDeniedException("Somente o atendente responsável ou um administrador pode alterar esse status");
+            }
+        } else if (target == TicketStatus.CLOSED) {
+            if (!isAdmin && !isRequester) {
+                throw new AccessDeniedException("Somente o solicitante ou um administrador pode fechar o chamado");
+            }
+        }
+
+        changeStatus(ticket, target);
         return TicketResponseDTO.from(ticket);
     }
 
@@ -114,6 +124,12 @@ public class TicketService {
                     "Transição de status inválida: " + ticket.getStatus() + " -> " + newStatus);
         }
         ticket.setStatus(newStatus);
+    }
+
+    void checkCanView(Ticket ticket, User principal) {
+        if (principal.getRole() == Role.CLIENT && !ticket.getRequester().getId().equals(principal.getId())) {
+            throw new AccessDeniedException("Você não tem acesso a esse chamado");
+        }
     }
 
     Ticket findEntityById(Long id) {
