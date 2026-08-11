@@ -14,12 +14,18 @@ public record TicketResponseDTO(
         TicketPriority priority,
         Instant createdAt,
         Instant updatedAt,
+        Instant slaDeadline,
+        Instant resolvedAt,
+        boolean slaBreached,
         UserResponseDTO requester,
         UserResponseDTO attendant,
         CategoryResponseDTO category
 ) {
 
     public static TicketResponseDTO from(Ticket ticket) {
+        Instant reference = ticket.getResolvedAt() != null ? ticket.getResolvedAt() : Instant.now();
+        boolean breached = reference.isAfter(ticket.getSlaDeadline());
+
         return new TicketResponseDTO(
                 ticket.getId(),
                 ticket.getTitle(),
@@ -28,6 +34,9 @@ public record TicketResponseDTO(
                 ticket.getPriority(),
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt(),
+                ticket.getSlaDeadline(),
+                ticket.getResolvedAt(),
+                breached,
                 UserResponseDTO.from(ticket.getRequester()),
                 ticket.getAttendant() != null ? UserResponseDTO.from(ticket.getAttendant()) : null,
                 CategoryResponseDTO.from(ticket.getCategory())

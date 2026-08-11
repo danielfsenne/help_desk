@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,11 @@ public class Ticket {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(nullable = false)
+    private Instant slaDeadline;
+
+    private Instant resolvedAt;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
@@ -71,6 +77,7 @@ public class Ticket {
         if (this.status == null) {
             this.status = TicketStatus.NEW;
         }
+        this.slaDeadline = now.plus(this.priority.getSlaMinutes(), ChronoUnit.MINUTES);
     }
 
     @PreUpdate

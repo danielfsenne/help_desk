@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -133,6 +134,13 @@ public class TicketService {
             throw new BusinessException(
                     "Transição de status inválida: " + ticket.getStatus() + " -> " + newStatus);
         }
+
+        if (newStatus == TicketStatus.RESOLVED) {
+            ticket.setResolvedAt(Instant.now());
+        } else if (ticket.getStatus() == TicketStatus.RESOLVED && newStatus == TicketStatus.IN_PROGRESS) {
+            ticket.setResolvedAt(null);
+        }
+
         ticket.setStatus(newStatus);
     }
 
