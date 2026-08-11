@@ -44,7 +44,14 @@ export default function DashboardPage() {
           <h1 style={{ margin: 0 }}>Olá, {currentUser?.name}</h1>
           <span style={{ color: '#666', fontSize: 13 }}>{currentUser?.role}</span>
         </div>
-        <button onClick={logout}>Sair</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {currentUser?.role === 'ADMIN' && (
+            <Link to="/categories">
+              <button>Categorias</button>
+            </Link>
+          )}
+          <button onClick={logout}>Sair</button>
+        </div>
       </header>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>

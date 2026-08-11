@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import NewTicketPage from './pages/NewTicketPage'
+import CategoriesPage from './pages/CategoriesPage'
 import TicketDetailPage from './pages/TicketDetailPage'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/tickets/new" element={<NewTicketPage />} />
             <Route path="/tickets/:id" element={<TicketDetailPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
