@@ -40,6 +40,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/reports" onClick={() => setMobileOpen(false)}>
             Relatórios
           </NavLink>
+          <NavLink to="/users" onClick={() => setMobileOpen(false)}>
+            Usuários
+          </NavLink>
         </>
       )}
     </>

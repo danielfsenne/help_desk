@@ -8,6 +8,7 @@ import CategoriesPage from './pages/CategoriesPage'
 import TicketDetailPage from './pages/TicketDetailPage'
 import RegisterPage from './pages/RegisterPage'
 import ReportsPage from './pages/ReportsPage'
+import UsersPage from './pages/UsersPage'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/tickets/:id" element={<TicketDetailPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/users" element={<UsersPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
